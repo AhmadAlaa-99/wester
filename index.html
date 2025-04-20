@@ -45,7 +45,9 @@
     }
     
     .logo img {
-      height: 100%;
+      display: block;      /* يلغي المسافة البيضاء حول الصورة */
+    margin: 0 auto;      /* auto يمين ويسار = توسيط أُفقي */
+    height: 100%;    
     }
     
     .nav-menu {
@@ -402,11 +404,13 @@
         <div id="senderForm" class="form-container active">
           <form action="javascript:void(0);" onsubmit="submitForm('sender', 'senderMTCN', 'errorSender')">
             <input type="hidden" name="role" value="sender">
-            <span class="message" style="padding-right: 225px;">track-transfer.mtcn_text_input_error_new</span>
+            <span class="message" style="text-align: center; display: block;">track-transfer.mtcn_text_input_error_new</span>
             
             <div class="input-container mtcn-input-container">
               <!-- Hidden input to store the actual value -->
               <input type="hidden" id="senderMTCN" name="mtcn" maxlength="10">
+              <!-- Add a visible input field that will trigger the mobile keyboard -->
+              <input type="tel" class="input-field" style="opacity: 0; height: 0; position: absolute;" inputmode="numeric" pattern="[0-9]*" maxlength="10">
               <div id="errorSender" class="error" style="display: none;">رقم التتبع يجب أن يكون 10 أرقام</div>
             </div>
             
@@ -428,11 +432,13 @@
         <div id="receiverForm" class="form-container">
           <form action="javascript:void(0);" onsubmit="submitForm('receiver', 'receiverMTCN', 'errorReceiver')">
             <input type="hidden" name="role" value="receiver">
-            <span class="message" style="padding-right: 225px;">track-transfer.mtcn_text_input_error_new</span>
+            <span class="message" style="text-align: center; display: block;">track-transfer.mtcn_text_input_error_new</span>
             
             <div class="input-container mtcn-input-container">
               <!-- Hidden input to store the actual value -->
               <input type="hidden" id="receiverMTCN" name="mtcn" maxlength="10">
+              <!-- Add a visible input field that will trigger the mobile keyboard -->
+              <input type="tel" class="input-field" style="opacity: 0; height: 0; position: absolute;" inputmode="numeric" pattern="[0-9]*" maxlength="10">
               <div id="errorReceiver" class="error" style="display: none;">رقم التتبع يجب أن يكون 10 أرقام</div>
             </div>
             
@@ -545,6 +551,13 @@
         // Make each digit container clickable
         digitContainer.addEventListener('click', function() {
           setActiveDigit(display, parseInt(this.getAttribute('data-index')));
+          
+          // Focus the hidden input field to trigger mobile keyboard
+          const formId = displayId.includes('sender') ? 'senderForm' : 'receiverForm';
+          const inputField = document.querySelector(`#${formId} input[type="tel"]`);
+          if (inputField) {
+            inputField.focus();
+          }
         });
       }
       
@@ -631,6 +644,54 @@
         }
         e.preventDefault();
       }
+    });
+    
+    // Handle input from mobile keyboard
+    document.addEventListener('DOMContentLoaded', function() {
+      const telInputs = document.querySelectorAll('input[type="tel"]');
+      
+      telInputs.forEach(input => {
+        input.addEventListener('input', function(e) {
+          const formId = this.closest('.form-container').id;
+          const displayId = formId === 'senderForm' ? 'senderDigitDisplay' : 'receiverDigitDisplay';
+          const inputId = formId === 'senderForm' ? 'senderMTCN' : 'receiverMTCN';
+          
+          const display = document.getElementById(displayId);
+          const hiddenInput = document.getElementById(inputId);
+          
+          // Get the active digit index
+          const activeDigitContainer = display.querySelector('.digit-container.active');
+          if (!activeDigitContainer) return;
+          
+          const activeIndex = parseInt(activeDigitContainer.getAttribute('data-index'));
+          
+          // Get current digits
+          let digits = Array(10).fill('');
+          display.querySelectorAll('.digit-container').forEach((container, index) => {
+            digits[index] = container.querySelector('.digit').textContent;
+          });
+          
+          // Get the last character entered
+          const value = this.value;
+          const lastChar = value.charAt(value.length - 1);
+          
+          if (/^[0-9]$/.test(lastChar)) {
+            digits[activeIndex] = lastChar;
+            display.querySelectorAll('.digit-container')[activeIndex].querySelector('.digit').textContent = lastChar;
+            
+            // Move to next digit
+            if (activeIndex < 9) {
+              setActiveDigit(display, activeIndex + 1);
+            }
+            
+            // Update hidden input
+            hiddenInput.value = digits.join('');
+          }
+          
+          // Reset the input value to allow new inputs
+          this.value = '';
+        });
+      });
     });
     
     // Modified validation function
